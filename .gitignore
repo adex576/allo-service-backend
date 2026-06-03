@@ -1,0 +1,12 @@
+﻿/vendor
+/node_modules
+/.env
+/.env.backup
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+*.log
+.DS_Store
+.phpunit.result.cache
