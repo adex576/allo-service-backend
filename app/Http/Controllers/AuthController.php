@@ -48,6 +48,14 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if (!$user->is_active) {
+            return response()->json([
+                'message' => $user->suspended_reason
+                    ? "Compte suspendu : {$user->suspended_reason}"
+                    : 'Votre compte a été suspendu. Contactez le support.'
+            ], 403);
+        }
+
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

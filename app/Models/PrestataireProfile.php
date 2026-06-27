@@ -10,7 +10,13 @@ class PrestataireProfile extends Model
         'category_id',
         'bio',
         'availability',
-        'rating_avg'
+        'rating_avg',
+        'is_verified',
+    ];
+
+    protected $casts = [
+        'availability' => 'boolean',
+        'is_verified'  => 'boolean',
     ];
 
     public function user() {

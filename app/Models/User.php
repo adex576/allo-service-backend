@@ -16,11 +16,18 @@ class User extends Authenticatable
         'role',
         'phone',
         'avatar',
+        'is_active',
+        'suspended_reason',
     ];
 
     protected $hidden = [
         'password',
         'remember_token'
+    ];
+
+    protected $casts = [
+        'is_active'         => 'boolean',
+        'email_verified_at' => 'datetime',
     ];
 
     public function isClient() {
@@ -29,6 +36,10 @@ class User extends Authenticatable
 
     public function isPrestataire() {
         return $this->role === 'prestataire';
+    }
+
+    public function isAdmin() {
+        return $this->role === 'admin';
     }
 
     public function prestataireProfile() {
@@ -45,5 +56,15 @@ class User extends Authenticatable
 
     public function avis() {
         return $this->hasMany(Avis::class, 'client_id');
+    }
+
+    public function conversations() {
+        return $this->belongsToMany(Conversation::class)
+            ->withPivot('last_read_at')
+            ->withTimestamps();
+    }
+
+    public function sentMessages() {
+        return $this->hasMany(Message::class, 'sender_id');
     }
 }

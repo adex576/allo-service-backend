@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Offre;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 
 class OffreController extends Controller
@@ -36,6 +37,9 @@ class OffreController extends Controller
             'statut'         => 'en_attente',
         ]);
 
+        UserNotification::pushTo($demande->client_id, 'new_offre',
+            "Nouvelle offre reçue sur \"{$demande->title}\"", $demande->id);
+
         return response()->json($offre, 201);
     }
 
@@ -56,6 +60,10 @@ class OffreController extends Controller
         if ($request->statut === 'acceptee') {
             $offre->demande->update(['statut' => 'en_cours']);
         }
+
+        $label = $request->statut === 'acceptee' ? 'acceptée' : 'refusée';
+        UserNotification::pushTo($offre->prestataire_id, 'offre_' . $request->statut,
+            "Votre offre sur \"{$offre->demande->title}\" a été {$label}", $offre->demande_id);
 
         return response()->json($offre);
     }
@@ -92,6 +100,10 @@ class OffreController extends Controller
             'statut'        => 'negociation',
         ]);
 
+        UserNotification::pushTo($offre->prestataire_id, 'offre_negociation',
+            'Le client propose ' . number_format($request->counter_devis, 0, ',', ' ') . " MAD pour \"{$offre->demande->title}\"",
+            $offre->demande_id);
+
         return response()->json($offre);
     }
 
@@ -119,6 +131,9 @@ class OffreController extends Controller
             'statut'        => 'en_attente', // back in the client's court
             'counter_devis' => null,
         ]);
+
+        UserNotification::pushTo($offre->demande->client_id, 'offre_revisee',
+            "Le prestataire a révisé son devis sur \"{$offre->demande->title}\"", $offre->demande_id);
 
         return response()->json($offre);
     }

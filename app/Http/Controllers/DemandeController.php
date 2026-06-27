@@ -2,6 +2,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Demande;
+use App\Models\PrestataireProfile;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 
 class DemandeController extends Controller
@@ -66,6 +68,17 @@ class DemandeController extends Controller
             'date_souhaitee' => $request->date_souhaitee,
             'statut'         => 'ouverte',
         ]);
+
+        if ($demande->prestataire_id) {
+            UserNotification::pushTo($demande->prestataire_id, 'demande_directe',
+                $this->currentUser()->name . " vous a adressé une demande : \"{$demande->title}\"", $demande->id);
+        } else {
+            $prestataireIds = PrestataireProfile::where('category_id', $demande->category_id)->pluck('user_id');
+            foreach ($prestataireIds as $pid) {
+                UserNotification::pushTo($pid, 'new_demande',
+                    "Nouvelle demande dans votre catégorie : \"{$demande->title}\"", $demande->id);
+            }
+        }
 
         return response()->json($demande, 201);
     }

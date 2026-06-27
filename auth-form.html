@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlloService — Authentification</title>
+
+  <!-- Classy fonts: Fraunces (serif display) + Outfit (modern sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Outfit:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="AuthForm.css" />
+</head>
+<body>
+
+  <div class="auth-wrapper">
+    <!-- Animated background mesh -->
+    <div class="auth-bg">
+      <span class="auth-bg__blob auth-bg__blob--1"></span>
+      <span class="auth-bg__blob auth-bg__blob--2"></span>
+      <span class="auth-bg__blob auth-bg__blob--3"></span>
+    </div>
+
+    <div class="auth-container">
+
+      <!-- LEFT PANEL - Branding -->
+      <div class="auth-panel auth-panel--left">
+        <div class="auth-panel__content">
+          <div class="auth-brand">
+            <!-- Custom SVG logo: stylized "A" monogram with service-spark accent -->
+            <span class="auth-brand__icon" aria-hidden="true">
+              <svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+                    <stop offset="100%" stop-color="#ffffff" stop-opacity="0.55" />
+                  </linearGradient>
+                  <linearGradient id="logoSpark" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#fbbf24" />
+                    <stop offset="100%" stop-color="#f59e0b" />
+                  </linearGradient>
+                </defs>
+                <!-- rounded square frame -->
+                <rect x="2" y="2" width="52" height="52" rx="16"
+                      fill="none" stroke="url(#logoGrad)" stroke-width="2"/>
+                <!-- stylized A -->
+                <path d="M18 40 L28 14 L38 40 M22.5 31 L33.5 31"
+                      stroke="#ffffff" stroke-width="3.2"
+                      stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <!-- spark / service dot -->
+                <circle cx="42" cy="16" r="4" fill="url(#logoSpark)"/>
+                <circle cx="42" cy="16" r="7" fill="none"
+                        stroke="url(#logoSpark)" stroke-width="1" opacity="0.5"/>
+              </svg>
+            </span>
+            <h1 class="auth-brand__name">Allo<b>Service</b></h1>
+          </div>
+
+          <h2 class="auth-panel__title">
+            <span class="auth-panel__title-line">Bon retour</span>
+            <span class="auth-panel__title-line">parmi nous!</span>
+          </h2>
+
+          <p class="auth-panel__text">
+            Connectez-vous pour accéder à votre compte et continuer à profiter de nos services de qualité.
+          </p>
+
+          <div class="auth-panel__features">
+            <div class="auth-feature"><span>✓</span> Artisans vérifiés</div>
+            <div class="auth-feature"><span>✓</span> Service rapide 24/7</div>
+            <div class="auth-feature"><span>✓</span> Paiement sécurisé</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT PANEL - Form -->
+      <div class="auth-panel auth-panel--right">
+        <div class="auth-form-wrapper">
+          <div class="auth-form-header">
+            <h2>Connexion</h2>
+            <p>Entrez vos identifiants pour continuer</p>
+          </div>
+
+          <form class="auth-form" novalidate>
+
+            <!-- Full Name - Sign Up Only -->
+            <div class="auth-field">
+              <label for="fullName">
+                <span class="auth-field__icon">👤</span>
+                Nom complet
+              </label>
+              <input type="text" id="fullName" name="fullName" placeholder="Votre nom complet" />
+            </div>
+
+            <!-- Email -->
+            <div class="auth-field">
+              <label for="email">
+                <span class="auth-field__icon">📧</span>
+                Email
+              </label>
+              <input type="email" id="email" name="email" placeholder="exemple@email.com" required />
+            </div>
+
+            <!-- Phone - Sign Up Only -->
+            <div class="auth-field">
+              <label for="phone">
+                <span class="auth-field__icon">📱</span>
+                Téléphone
+              </label>
+              <input type="tel" id="phone" name="phone" placeholder="+212 6XX XXX XXX" />
+            </div>
+
+            <!-- Password -->
+            <div class="auth-field">
+              <label for="password">
+                <span class="auth-field__icon">🔒</span>
+                Mot de passe
+              </label>
+              <div class="auth-field__password">
+                <input type="password" id="password" name="password" placeholder="••••••••" required minlength="6" />
+                <button type="button" class="auth-field__toggle" aria-label="Afficher le mot de passe">
+                  👁️‍🗨️
+                </button>
+              </div>
+            </div>
+
+            <!-- Confirm Password - Sign Up Only -->
+            <div class="auth-field">
+              <label for="confirmPassword">
+                <span class="auth-field__icon">🔐</span>
+                Confirmer mot de passe
+              </label>
+              <input type="password" id="confirmPassword" name="confirmPassword" placeholder="••••••••" minlength="6" />
+            </div>
+
+            <!-- Forgot Password - Login Only -->
+            <div class="auth-forgot">
+              <a href="#">Mot de passe oublié?</a>
+            </div>
+
+            <!-- Terms - Sign Up Only -->
+            <div class="auth-terms">
+              <label class="auth-checkbox">
+                <input type="checkbox" name="agreeTerms" />
+                <span>
+                  J'accepte les
+                  <a href="#">conditions d'utilisation</a> et la
+                  <a href="#">politique de confidentialité</a>
+                </span>
+              </label>
+            </div>
+
+            <button type="submit" class="auth-submit">
+              <span class="auth-submit__label">Se connecter</span>
+              <span class="auth-submit__arrow">→</span>
+            </button>
+          </form>
+
+          <div class="auth-divider"><span>ou</span></div>
+
+          <div class="auth-social">
+            <button type="button" class="auth-social__btn" aria-label="Google">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              </svg>
+            </button>
+            <button type="button" class="auth-social__btn" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="#1877F2">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+            </button>
+            <button type="button" class="auth-social__btn" aria-label="Apple">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="#000">
+                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="auth-switch">
+            Pas encore de compte?
+            <button type="button" class="auth-switch__btn">S'inscrire</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="AuthForm.js"></script>
+</body>
+</html>

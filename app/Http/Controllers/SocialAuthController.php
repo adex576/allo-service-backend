@@ -11,12 +11,14 @@ class SocialAuthController extends Controller
 {
     public function redirect(Request $request)
     {
-        // stateless flow: carry the chosen role through the OAuth state param
-        $role = $request->query('role') === 'prestataire' ? 'prestataire' : 'client';
+        $role   = $request->query('role')   === 'prestataire' ? 'prestataire' : 'client';
+        $action = $request->query('action') === 'register'    ? 'register'    : 'login';
 
+        // Encode both intent and role into the OAuth state so they survive
+        // the round-trip to Google without a session (stateless flow).
         return Socialite::driver('google')
             ->stateless()
-            ->with(['state' => $role])
+            ->with(['state' => "{$action}:{$role}"])
             ->redirect();
     }
 
@@ -30,19 +32,27 @@ class SocialAuthController extends Controller
             return redirect("{$frontendUrl}/login?error=google_failed");
         }
 
-        $role = $request->query('state') === 'prestataire' ? 'prestataire' : 'client';
+        // Decode state: "{action}:{role}"
+        $parts  = explode(':', (string) $request->query('state', 'login:client'), 2);
+        $action = ($parts[0] ?? 'login') === 'register' ? 'register' : 'login';
+        $role   = ($parts[1] ?? 'client') === 'prestataire' ? 'prestataire' : 'client';
 
-        $user = User::firstOrCreate(
-            ['email' => $googleUser->getEmail()],
-            [
-                'name'     => $googleUser->getName(),
-                'password' => Hash::make(Str::random(24)),
-                'role'     => $role,
-                'avatar'   => $googleUser->getAvatar(),
-            ]
-        );
+        $existing = User::where('email', $googleUser->getEmail())->first();
 
-        // refresh avatar for returning users who never set one
+        // Register flow: refuse to silently log in an existing account
+        if ($action === 'register' && $existing) {
+            return redirect("{$frontendUrl}/login?error=google_already_registered");
+        }
+
+        $user = $existing ?? User::create([
+            'name'     => $googleUser->getName(),
+            'email'    => $googleUser->getEmail(),
+            'password' => Hash::make(Str::random(24)),
+            'role'     => $role,
+            'avatar'   => $googleUser->getAvatar(),
+        ]);
+
+        // Refresh avatar for returning users who never set one
         if (!$user->avatar && $googleUser->getAvatar()) {
             $user->update(['avatar' => $googleUser->getAvatar()]);
         }

@@ -5,6 +5,7 @@ use App\Models\Avis;
 use App\Models\Demande;
 use App\Models\Offre;
 use App\Models\PrestataireProfile;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -67,5 +68,24 @@ class UserController extends Controller
         });
 
         return response()->json(['message' => 'Compte supprimé définitivement']);
+    }
+
+    // directory used to start a conversation with any user
+    public function search(Request $request)
+    {
+        $me = $this->currentUser();
+        $q  = trim((string) $request->query('q', ''));
+
+        $users = User::query()
+            ->where('id', '!=', $me->id)
+            ->where('is_active', true)
+            ->when($q !== '', fn ($query) => $query->where(fn ($w) =>
+                $w->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%")
+            ))
+            ->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name', 'email', 'avatar', 'role']);
+
+        return response()->json($users);
     }
 }

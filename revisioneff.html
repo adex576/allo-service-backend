@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Révision EFF 2026 — React & Redux</title>
+
+  <!-- ====== LES BIBLIOTHÈQUES (chargées depuis internet, pas besoin d'installer) ====== -->
+  <script src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/redux@4.2.1/dist/redux.min.js"></script>
+  <script src="https://unpkg.com/react-redux@8.1.3/dist/react-redux.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card2: #273449;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --border: #334155;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+    header h1 { margin: 0 0 4px; font-size: 26px; }
+    header p { margin: 0 0 20px; color: var(--muted); }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+    .tabs button {
+      background: var(--card); color: var(--text); border: 1px solid var(--border);
+      padding: 10px 16px; border-radius: 10px; cursor: pointer; font-size: 14px;
+    }
+    .tabs button.active { background: var(--accent); color: #04293f; border-color: var(--accent); font-weight: 600; }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px; margin-bottom: 16px;
+    }
+    .opt {
+      display: block; width: 100%; text-align: left; margin: 8px 0;
+      background: var(--card2); color: var(--text); border: 1px solid var(--border);
+      padding: 12px 14px; border-radius: 10px; cursor: pointer; font-size: 15px;
+    }
+    .opt:hover { border-color: var(--accent); }
+    .opt.correct { background: rgba(34,197,94,.18); border-color: var(--green); }
+    .opt.wrong { background: rgba(239,68,68,.18); border-color: var(--red); }
+    .explain { margin-top: 12px; padding: 12px; border-radius: 10px; background: var(--card2); color: var(--muted); font-size: 14px; }
+    .btn {
+      background: var(--accent); color: #04293f; border: none; font-weight: 600;
+      padding: 10px 18px; border-radius: 10px; cursor: pointer; font-size: 14px; margin-top: 12px;
+    }
+    .btn.ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+    input, select {
+      background: var(--card2); color: var(--text); border: 1px solid var(--border);
+      padding: 10px; border-radius: 8px; font-size: 14px; margin: 4px 6px 4px 0;
+    }
+    label { font-size: 14px; margin-right: 12px; }
+    .flux-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--card2); border: 1px solid var(--border);
+      padding: 10px 14px; border-radius: 10px; margin: 8px 0;
+    }
+    .flux-item .del { background: var(--red); color: #fff; border: none; border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+    .badge { background: var(--accent); color: #04293f; padding: 2px 10px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+    .progress { background: var(--card2); border-radius: 20px; height: 14px; overflow: hidden; margin: 6px 0; }
+    .progress > div { background: var(--accent); height: 100%; }
+    pre { background: #0b1220; border: 1px solid var(--border); border-radius: 10px; padding: 14px; overflow-x: auto; font-size: 13px; color: #cbd5e1; }
+    code { color: var(--accent); }
+    h3 { margin-top: 0; }
+    li { margin: 6px 0; }
+    .score { font-size: 40px; font-weight: 700; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- ============================================================ -->
+  <!-- TOUT LE CODE REACT EST ICI. Babel le traduit dans le navigateur. -->
+  <!-- ============================================================ -->
+  <script type="text/babel" data-presets="react">
+
+    // On récupère les outils depuis les bibliothèques chargées plus haut
+    const { useState } = React;
+    const { createStore } = Redux;
+    const { Provider, useSelector, useDispatch } = ReactRedux;
+
+    /* =====================================================================
+       PARTIE 1 — LE QUIZ (teste tes connaissances React / Redux)
+       ===================================================================== */
+    const questions = [
+      {
+        q: "Que retourne useState(0) ?",
+        options: ["Un nombre", "Un tableau : [valeur, fonction]", "Un objet", "Rien"],
+        answer: 1,
+        explain: "useState retourne un tableau : [la valeur, la fonction pour la changer]. Ex: const [x, setX] = useState(0)."
+      },
+      {
+        q: "Comment LIRE une donnée depuis le store Redux ?",
+        options: ["useDispatch()", "useState()", "useSelector()", "useEffect()"],
+        answer: 2,
+        explain: "useSelector(state => state.x) lit une partie du store. Le composant se redessine quand cette partie change."
+      },
+      {
+        q: "Comment MODIFIER le store Redux ?",
+        options: ["Modifier state directement", "dispatch(action)", "useSelector()", "setState()"],
+        answer: 1,
+        explain: "On envoie une 'note' avec dispatch(action). On ne touche JAMAIS au store directement."
+      },
+      {
+        q: "Un reducer doit...",
+        options: ["Modifier l'ancien state directement", "Retourner un NOUVEAU state sans muter l'ancien", "Appeler l'API", "Utiliser useState"],
+        answer: 1,
+        explain: "Un reducer est pur : il copie l'ancien state et retourne un nouvel objet. Ex: return {...state, x: 1}."
+      },
+      {
+        q: "En affichant une liste avec .map(), chaque élément a besoin d'un...",
+        options: ["id dans la base", "attribut key", "className", "ref"],
+        answer: 1,
+        explain: "key={item.id} aide React à suivre chaque élément quand la liste change."
+      },
+      {
+        q: "Dans un formulaire, e.preventDefault() sert à...",
+        options: ["Vider le formulaire", "Empêcher la page de se recharger", "Valider les champs", "Envoyer les données"],
+        answer: 1,
+        explain: "Par défaut, soumettre un <form> recharge la page. preventDefault() bloque ça pour qu'on gère nous-mêmes."
+      },
+      {
+        q: "À quoi sert <Provider store={store}> ?",
+        options: ["Créer le store", "Rendre le store disponible à TOUS les composants", "Lire le store", "Définir les reducers"],
+        answer: 1,
+        explain: "Provider enveloppe l'app une seule fois. Sans lui, useSelector/useDispatch plantent."
+      },
+      {
+        q: "En React Router v6, une route s'écrit...",
+        options: ['<Route component={Home} />', '<Route path="/" element={<Home/>} />', "<Route>Home</Route>", "<Link to={Home} />"],
+        answer: 1,
+        explain: "v6 utilise element={<Composant/>} (et non component={...} comme en v5)."
+      },
+      {
+        q: "Pour copier l'ancien state et changer un champ (immutabilité), on écrit...",
+        options: ["state.x = 1", "{...state, x: 1}", "state.push(1)", "copy(state)"],
+        answer: 1,
+        explain: "Le spread {...state} copie tout l'ancien objet, puis on remplace le champ voulu."
+      },
+      {
+        q: "Un input contrôlé a besoin de quels deux éléments ?",
+        options: ["id et name", "value et onChange", "type et placeholder", "class et ref"],
+        answer: 1,
+        explain: "value={x} affiche le state dans l'input ; onChange écrit ce qu'on tape dans le state."
+      },
+      {
+        q: "useEffect(() => {...}, []) — le [] vide signifie que le code s'exécute...",
+        options: ["À chaque rendu", "Une seule fois à l'apparition du composant", "Jamais", "À chaque clic"],
+        answer: 1,
+        explain: "Le tableau de dépendances vide [] = 'lance ce code une seule fois au montage'. C'est là qu'on appelle l'API."
+      },
+      {
+        q: "Une action est un objet qui a TOUJOURS un...",
+        options: ["payload", "type", "reducer", "state"],
+        answer: 1,
+        explain: "Le 'type' est obligatoire (le label). Le 'payload' (les données) est optionnel."
+      },
+      {
+        q: "Pour SUPPRIMER un élément d'un tableau sans le muter, on utilise...",
+        options: [".push()", ".filter()", ".map()", "delete"],
+        answer: 1,
+        explain: "filter() crée un NOUVEAU tableau en gardant tout sauf l'élément à retirer."
+      },
+      {
+        q: "Pour AJOUTER un élément à un tableau sans le muter, on utilise...",
+        options: ["arr.push(x)", "[...arr, x]", "arr[arr.length] = x", "arr.add(x)"],
+        answer: 1,
+        explain: "[...arr, x] crée un nouveau tableau = ancien contenu + le nouvel élément."
+      },
+    ];
+
+    function Quiz() {
+      const [i, setI] = useState(0);          // numéro de la question actuelle
+      const [picked, setPicked] = useState(null); // réponse choisie
+      const [score, setScore] = useState(0);
+      const [done, setDone] = useState(false);
+
+      const q = questions[i];
+
+      function pick(idx) {
+        if (picked !== null) return;          // déjà répondu : on ignore
+        setPicked(idx);
+        if (idx === q.answer) setScore(score + 1);
+      }
+
+      function next() {
+        if (i + 1 < questions.length) {
+          setI(i + 1);
+          setPicked(null);
+        } else {
+          setDone(true);
+        }
+      }
+
+      function restart() {
+        setI(0); setPicked(null); setScore(0); setDone(false);
+      }
+
+      if (done) {
+        return (
+          <div className="card" style={{ textAlign: "center" }}>
+            <h3>Terminé ! 🎉</h3>
+            <div className="score">{score} / {questions.length}</div>
+            <p style={{ color: "var(--muted)" }}>
+              {score === questions.length ? "Parfait ! Tu es prêt(e)." :
+               score >= questions.length / 2 ? "Bien ! Revois les points ratés." :
+               "Continue à réviser, tu vas y arriver 💪"}
+            </p>
+            <button className="btn" onClick={restart}>Recommencer</button>
+          </div>
+        );
+      }
+
+      return (
+        <div className="card">
+          <p style={{ color: "var(--muted)" }}>Question {i + 1} / {questions.length} — Score : {score}</p>
+          <h3>{q.q}</h3>
+
+          {q.options.map((opt, idx) => {
+            let cls = "opt";
+            if (picked !== null) {
+              if (idx === q.answer) cls += " correct";
+              else if (idx === picked) cls += " wrong";
+            }
+            return (
+              <button key={idx} className={cls} onClick={() => pick(idx)}>
+                {opt}
+              </button>
+            );
+          })}
+
+          {picked !== null && (
+            <div className="explain">
+              {picked === q.answer ? "✅ Correct ! " : "❌ Faux. "}
+              {q.explain}
+              <div><button className="btn" onClick={next}>Suivant →</button></div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* =====================================================================
+       PARTIE 2 — LE STORE REDUX (la démo en direct)
+       Les 4 morceaux : actions, reducer, store
+       ===================================================================== */
+
+    // --- a) Les actions (les "notes") ---
+    const ADD_FLUX = "ADD_FLUX";
+    const REMOVE_FLUX = "REMOVE_FLUX";
+    const addFlux = (flux) => ({ type: ADD_FLUX, payload: flux });
+    const removeFlux = (id) => ({ type: REMOVE_FLUX, payload: id });
+
+    // --- b) Le reducer (la règle qui met à jour la boîte) ---
+    const initialState = {
+      flux: [
+        { id: 1, nom: "Caméra Centrale", type: "fixe", debit: 85, latence: 120 },
+        { id: 2, nom: "Caméra Latérale", type: "mobile", debit: 45, latence: 95 },
+      ],
+    };
+
+    function fluxReducer(state = initialState, action) {
+      switch (action.type) {
+        case ADD_FLUX:
+          return { ...state, flux: [...state.flux, action.payload] };
+        case REMOVE_FLUX:
+          return { ...state, flux: state.flux.filter(f => f.id !== action.payload) };
+        default:
+          return state;
+      }
+    }
+
+    // --- c) Le store (la boîte) ---
+    const store = createStore(fluxReducer);
+
+    /* ---------- Composant FORMULAIRE : useState + useDispatch ---------- */
+    function AjouterFlux() {
+      const dispatch = useDispatch();
+      const [form, setForm] = useState({ nom: "", type: "fixe", debit: "", latence: "" });
+
+      function change(e) {
+        const { name, value } = e.target;
+        setForm({ ...form, [name]: value });   // met à jour un seul champ
+      }
+
+      function ajouter(e) {
+        e.preventDefault();
+        if (!form.nom) { alert("Le nom est requis"); return; }
+        dispatch(addFlux({
+          id: Date.now(),
+          nom: form.nom,
+          type: form.type,
+          debit: Number(form.debit),
+          latence: Number(form.latence),
+        }));
+        setForm({ nom: "", type: "fixe", debit: "", latence: "" }); // reset
+        alert("Flux ajouté avec succès !");
+      }
+
+      return (
+        <form onSubmit={ajouter} className="card">
+          <h3>➕ Ajouter un flux</h3>
+          <input name="nom" value={form.nom} onChange={change} placeholder="Nom de la caméra" />
+          <br />
+          <label><input type="radio" name="type" value="fixe" checked={form.type === "fixe"} onChange={change} /> Fixe</label>
+          <label><input type="radio" name="type" value="mobile" checked={form.type === "mobile"} onChange={change} /> Mobile</label>
+          <br />
+          <input type="number" name="debit" value={form.debit} onChange={change} placeholder="Débit (Mbps)" />
+          <input type="number" name="latence" value={form.latence} onChange={change} placeholder="Latence (ms)" />
+          <br />
+          <button type="submit" className="btn">Ajouter</button>
+        </form>
+      );
+    }
+
+    /* ---------- Composant LISTE : useSelector + .map() ---------- */
+    function ListeFlux() {
+      const flux = useSelector(state => state.flux);   // LIT la boîte
+      const dispatch = useDispatch();
+
+      // Petit calcul dérivé du store (exemple useSelector "intelligent")
+      const total = flux.length;
+      const debitMoyen = total ? Math.round(flux.reduce((s, f) => s + f.debit, 0) / total) : 0;
+
+      if (total === 0) return <div className="card">Aucun flux. Ajoute-en un !</div>;
+
+      return (
+        <div className="card">
+          <h3>📡 Liste des flux <span className="badge">{total}</span></h3>
+          <p style={{ color: "var(--muted)" }}>Débit moyen : {debitMoyen} Mbps</p>
+          {flux.map(f => (
+            <div className="flux-item" key={f.id}>
+              <span>
+                <strong>{f.nom}</strong> ({f.type}) — {f.debit} Mbps — {f.latence} ms
+              </span>
+              <button className="del" onClick={() => dispatch(removeFlux(f.id))}>Supprimer</button>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function Demo() {
+      return (
+        <div>
+          <AjouterFlux />
+          <ListeFlux />
+        </div>
+      );
+    }
+
+    /* =====================================================================
+       PARTIE 3 — LES DÉFIS (modifie le code de ce fichier pour t'entraîner)
+       ===================================================================== */
+    function Defis() {
+      const items = [
+        "Ajoute un champ 'résolution' (HD / 4K) au formulaire et affiche-le dans la liste.",
+        "Ajoute une action SELECT_FLUX et affiche le flux sélectionné en surbrillance.",
+        "Dans ListeFlux, ajoute un champ de recherche qui filtre les flux par nom.",
+        "Empêche le reducer d'ajouter un flux si le débit est > 500 Mbps.",
+        "Ajoute un bouton 'Tout supprimer' (nouvelle action CLEAR_FLUX).",
+        "Affiche en rouge les flux dont la latence dépasse 150 ms (rendu conditionnel).",
+        "Transforme le store pour qu'il contienne des 'satellites', chacun avec sa liste 'flux' (comme dans l'examen).",
+      ];
+      return (
+        <div className="card">
+          <h3>🎯 Défis — modifie le fichier et recharge la page</h3>
+          <p style={{ color: "var(--muted)" }}>
+            Ouvre ce fichier dans ton éditeur, fais le défi, sauvegarde, et recharge le navigateur.
+          </p>
+          <ol>{items.map((t, i) => <li key={i}>{t}</li>)}</ol>
+          <p style={{ color: "var(--muted)" }}>Bloqué(e) ? Demande-moi la solution d'un défi précis.</p>
+        </div>
+      );
+    }
+
+    /* =====================================================================
+       PARTIE 4 — ANTI-SÈCHE (les syntaxes à retenir)
+       ===================================================================== */
+    function AntiSeche() {
+      const blocks = [
+        { t: "useState (mémoire locale)", c: "const [x, setX] = useState(0);\nsetX(5);            // change la valeur\nsetX(p => p + 1);   // depuis l'ancienne valeur" },
+        { t: "Input contrôlé", c: "<input value={x} onChange={e => setX(e.target.value)} />" },
+        { t: "Formulaire", c: "<form onSubmit={e => { e.preventDefault(); /* ... */ }}>\n  <button type=\"submit\">OK</button>\n</form>" },
+        { t: "Liste (comme foreach)", c: "arr.map(f => <li key={f.id}>{f.nom}</li>)" },
+        { t: "Condition", c: "{ok ? <A/> : <B/>}\n{ok && <A/>}" },
+        { t: "Immutabilité", c: "{...obj, x: 1}       // copier + changer\n[...arr, item]       // ajouter\narr.filter(i => i.id !== id)  // supprimer" },
+        { t: "Redux — actions", c: "const add = (x) => ({ type: 'ADD', payload: x });" },
+        { t: "Redux — reducer", c: "function reducer(state = init, action) {\n  switch (action.type) {\n    case 'ADD': return { ...state, x: action.payload };\n    default: return state;\n  }\n}" },
+        { t: "Redux — store + Provider", c: "const store = createStore(reducer);\n<Provider store={store}><App/></Provider>" },
+        { t: "Redux — lire / écrire", c: "const x = useSelector(s => s.x);   // lire\nconst dispatch = useDispatch();    // outil\ndispatch(add(5));                  // écrire" },
+        { t: "API — au chargement", c: "useEffect(() => {\n  axios.get('/api/flux').then(r => setData(r.data));\n}, []);" },
+        { t: "API — CRUD (axios)", c: "axios.get(url)         // lire\naxios.post(url, obj)   // créer\naxios.put(url, obj)    // modifier\naxios.delete(url)      // supprimer" },
+        { t: "Router v6", c: "<BrowserRouter>\n  <Routes>\n    <Route path=\"/x\" element={<X/>} />\n  </Routes>\n</BrowserRouter>" },
+      ];
+      return (
+        <div className="card">
+          <h3>📚 Anti-sèche — à mémoriser</h3>
+          {blocks.map((b, i) => (
+            <div key={i} style={{ marginBottom: 14 }}>
+              <strong style={{ color: "var(--accent)" }}>{b.t}</strong>
+              <pre>{b.c}</pre>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    /* =====================================================================
+       L'APPLICATION PRINCIPALE (les onglets)
+       ===================================================================== */
+    function App() {
+      const [tab, setTab] = useState("quiz");
+      const Tab = ({ id, label }) => (
+        <button className={tab === id ? "active" : ""} onClick={() => setTab(id)}>{label}</button>
+      );
+      return (
+        <div className="container">
+          <header>
+            <h1>🛰️ Révision EFF 2026 — React &amp; Redux</h1>
+            <p>SatStream Manager — teste tes connaissances avant l'examen</p>
+          </header>
+          <div className="tabs">
+            <Tab id="quiz" label="📝 Quiz" />
+            <Tab id="demo" label="⚛️ Démo Redux" />
+            <Tab id="defis" label="🎯 Défis" />
+            <Tab id="cheat" label="📚 Anti-sèche" />
+          </div>
+          {tab === "quiz" && <Quiz />}
+          {tab === "demo" && <Demo />}
+          {tab === "defis" && <Defis />}
+          {tab === "cheat" && <AntiSeche />}
+        </div>
+      );
+    }
+
+    // On démarre l'app, enveloppée dans le Provider Redux
+    ReactDOM.createRoot(document.getElementById("root")).render(
+      <Provider store={store}>
+        <App />
+      </Provider>
+    );
+  </script>
+</body>
+</html>
